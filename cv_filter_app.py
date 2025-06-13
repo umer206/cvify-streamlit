@@ -31,16 +31,52 @@ def extract_text_from_docx(file_path):
     except:
         return ""
 
+# --- Name Extraction ---
+def extract_name(text):
+    lines = text.strip().splitlines()
+    for line in lines:
+        line = line.strip()
+        if (
+            line 
+            and len(line.split()) <= 4 
+            and line.replace(" ", "").isalpha() 
+            and line[0].isupper()
+        ):
+            return line
+    return ""
+
 # --- Info Extraction ---
 def extract_candidate_info(text):
-    email = re.search(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", text)
-    phone = re.search(r"(\+92|03)[0-9]{9,10}", text)
-    linkedin = re.search(r"(https?://)?(www\.)?linkedin\.com/in/[A-Za-z0-9\-_/]+", text)
+    # Email pattern
+    email_match = re.search(
+        r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", text
+    )
+    email = email_match.group(0) if email_match else ""
+
+    # Pakistani phone pattern (improved)
+    phone_match = re.search(
+        r"(?:(?:\+92|0092|0)?3[0-9]{9})", text
+    )
+    phone = phone_match.group(0) if phone_match else ""
+
+    # LinkedIn pattern
+    linkedin_match = re.search(
+        r"(https?://)?(www\.)?linkedin\.com/in/[A-Za-z0-9\-_/.]+", text
+    )
+    linkedin = linkedin_match.group(0) if linkedin_match else ""
+    if linkedin and not linkedin.startswith("http"):
+        linkedin = "https://" + linkedin
+
+    # Candidate name
+    name = extract_name(text)
+
     return {
-        "Email": email.group() if email else "",
-        "Phone": phone.group() if phone else "",
-        "LinkedIn": linkedin.group() if linkedin else ""
+        "Name": name,
+        "Email": email,
+        "Phone": phone,
+        "LinkedIn": linkedin,
     }
+
 
 def match_keywords(text, keywords):
     found = [kw for kw in keywords if re.search(rf"\b{re.escape(kw.lower())}\b", text.lower())]
@@ -76,9 +112,12 @@ def process_files(source_folder, keywords):
 
         record = {
             "Filename": file,
+            "Name": candidate_info.get("Name", ""),
+            "Email": candidate_info.get("Email", ""),
+            "Phone": candidate_info.get("Phone", ""),
+            "LinkedIn": candidate_info.get("LinkedIn", ""),
             "Match Score": score,
             "Matched Keywords": ", ".join(matched_keywords),
-            **candidate_info,
             "Manual Review": "Yes" if is_image else "No",
             "Match": "Yes" if matched_keywords else "No"
         }
