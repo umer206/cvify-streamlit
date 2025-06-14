@@ -47,28 +47,28 @@ def extract_name(text):
 
 # --- Info Extraction ---
 def extract_candidate_info(text):
-    # Email pattern
+    # --- Email ---
     email_match = re.search(
         r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", text
     )
-    email = email_match.group(0) if email_match else ""
+    email = email_match.group().strip() if email_match else ""
 
-    # Pakistani phone pattern (improved)
+    # --- Phone (Pakistan formats incl. with +092 and dashes) ---
     phone_match = re.search(
-        r"(?:(?:\+92|0092|0)?3[0-9]{9})", text
+        r"(?:(?:\+92|0092|0)?[-\s]?\d{3}[-\s]?\d{3}[-\s]?\d{4})", text
     )
-    phone = phone_match.group(0) if phone_match else ""
+    phone = phone_match.group().strip() if phone_match else ""
 
-    # LinkedIn pattern
+    # --- LinkedIn ---
     linkedin_match = re.search(
-        r"(https?://)?(www\.)?linkedin\.com/in/[A-Za-z0-9\-_/.]+", text
+        r"(?:https?://)?(?:www\.)?linkedin\.com/in/[A-Za-z0-9\-_/]+", text
     )
-    linkedin = linkedin_match.group(0) if linkedin_match else ""
+    linkedin = linkedin_match.group().strip() if linkedin_match else ""
     if linkedin and not linkedin.startswith("http"):
         linkedin = "https://" + linkedin
 
-    # Candidate name
-    name = extract_name(text)
+    # Optional name extraction placeholder
+    name = extract_name(text)  # You can enhance this using `nameparser` or from filename
 
     return {
         "Name": name,
@@ -76,6 +76,7 @@ def extract_candidate_info(text):
         "Phone": phone,
         "LinkedIn": linkedin,
     }
+
 
 
 def match_keywords(text, keywords):
