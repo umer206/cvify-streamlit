@@ -7,5 +7,6 @@ st.write("""
 2. Enter the keywords to search.  
 3. Get a match report and download the Excel file or matched CVs ZIP.
 
-Manual review flag is shown for image-based or unparseable CVs.
+Manual review flag is shown for image-based or unparseable CVs. 
+         Update -   1.0.0.1
 """)
